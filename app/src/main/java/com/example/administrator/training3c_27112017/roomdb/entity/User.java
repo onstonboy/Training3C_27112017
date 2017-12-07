@@ -1,5 +1,8 @@
-package com.example.administrator.training3c_27112017;
+package com.example.administrator.training3c_27112017.roomdb.entity;
 
+import android.arch.persistence.room.ColumnInfo;
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.PrimaryKey;
 import android.os.Parcel;
 import android.os.Parcelable;
 import com.google.gson.annotations.Expose;
@@ -9,13 +12,17 @@ import com.google.gson.annotations.SerializedName;
  * Created by Administrator on 12/07/17.
  */
 
+@Entity(tableName = "users")
 public class User implements Parcelable {
 
     @SerializedName("login")
     @Expose
+    @ColumnInfo(name = "name")
     private String login;
     @SerializedName("id")
     @Expose
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "id")
     private Integer id;
     @SerializedName("avatar_url")
     @Expose
@@ -65,6 +72,14 @@ public class User implements Parcelable {
     @SerializedName("score")
     @Expose
     private Double score;
+
+    public User() {
+    }
+
+    public User(String login, Integer id) {
+        this.login = login;
+        this.id = id;
+    }
 
     protected User(Parcel in) {
         login = in.readString();
@@ -289,5 +304,6 @@ public class User implements Parcelable {
         }
     }
 }
+
 
 

@@ -10,16 +10,29 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 import com.example.administrator.training3c_27112017.adapters.ListUserRecyclerViewAdapter;
 import com.example.administrator.training3c_27112017.interfaces.OnItemRecyclerViewClick;
+import com.example.administrator.training3c_27112017.roomdb.database.Database;
+import com.example.administrator.training3c_27112017.roomdb.entity.User;
+import io.reactivex.Completable;
+import io.reactivex.CompletableObserver;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Action;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class ListUserFragment extends Fragment implements OnItemRecyclerViewClick,
-        View.OnClickListener {
+public class ListUserFragment extends Fragment
+        implements OnItemRecyclerViewClick, View.OnClickListener {
 
     private RecyclerView mRecyclerView;
     private ListUserRecyclerViewAdapter mListUserRecyclerViewAdapter;
@@ -28,6 +41,11 @@ public class ListUserFragment extends Fragment implements OnItemRecyclerViewClic
     private LinearLayoutManager layoutManager;
     private GridLayoutManager gridLayoutManager;
     private List<User> mUsers = new ArrayList<>();
+    private Database mDatabase;
+    private static final String TAG = "ListUserFragment";
+    private CompositeDisposable mCompositeDisposable;
+    private Button mBtnInsert;
+    private EditText mEdtName, mEdtId;
 
     public static ListUserFragment newInstant(GithubUserResponse userReponse) {
         ListUserFragment fragment = new ListUserFragment();
@@ -38,11 +56,29 @@ public class ListUserFragment extends Fragment implements OnItemRecyclerViewClic
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+            Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_list_user, container, false);
         initViews(v);
-        mListUserRecyclerViewAdapter.updateData(userReponse.getUsers());
+
+        mCompositeDisposable = new CompositeDisposable();
+        Disposable disposable = mDatabase.getUserDAO()
+                .getListUser()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<List<User>>() {
+                    @Override
+                    public void accept(List<User> users) throws Exception {
+                        mListUserRecyclerViewAdapter.updateData(users);
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+
+                    }
+                });
+        mCompositeDisposable.add(disposable);
         //TODO lam loadmore recyclerview
         //        mListUserRecyclerViewAdapter.setOnLoadMoreListener(new OnLoadMoreListener() {
         //            @Override
@@ -64,7 +100,8 @@ public class ListUserFragment extends Fragment implements OnItemRecyclerViewClic
         //                        }
         //                    },1000);
         //                } else {
-        //                    Toast.makeText(getActivity(), "Load complete", Toast.LENGTH_SHORT).show();
+        //                    Toast.makeText(getActivity(), "Load complete", Toast.LENGTH_SHORT)
+        // .show();
         //                }
         //            }
         //        });
@@ -78,6 +115,7 @@ public class ListUserFragment extends Fragment implements OnItemRecyclerViewClic
         mBtnVertical.setOnClickListener(this);
         mBtnGrid.setOnClickListener(this);
         mListUserRecyclerViewAdapter.setOnItemRecyclerViewClick(this);
+        mBtnInsert.setOnClickListener(this);
     }
 
     private void initViews(View v) {
@@ -85,34 +123,36 @@ public class ListUserFragment extends Fragment implements OnItemRecyclerViewClic
         mBtnVertical = v.findViewById(R.id.verticalButton);
         mBtnGrid = v.findViewById(R.id.gridButton);
         mRecyclerView = v.findViewById(R.id.listUserRecyclerView);
+        mBtnInsert = v.findViewById(R.id.insertUserButton);
+        mEdtName = v.findViewById(R.id.nameEditText);
+        mEdtId = v.findViewById(R.id.idEditText);
 
-        userReponse = getArguments().getParcelable(Constant.EXTRA_LIST_USER);
+        mDatabase = MainApplication.getDatabase();
         //        for (int i = 0; i < 10; i++) {
         //            mUsers.add(userReponse.getItems().get(i));
         //        }
 
         layoutManager = new LinearLayoutManager(getActivity());
         mRecyclerView.setLayoutManager(layoutManager);
-        //        mListUserRecyclerViewAdapter = new ListUserRecyclerViewAdapter(getActivity(), mRecyclerView);
+        //        mListUserRecyclerViewAdapter = new ListUserRecyclerViewAdapter(getActivity(),
+        // mRecyclerView);
         mListUserRecyclerViewAdapter = new ListUserRecyclerViewAdapter(getActivity());
 
         mRecyclerView.setAdapter(mListUserRecyclerViewAdapter);
-
     }
-
 
     @Override
     public void onItemClicked(int position) {
         DetailUserFragment detailUserFragment = new DetailUserFragment();
         FragmentTransaction manager = getActivity().getSupportFragmentManager().beginTransaction();
-        manager.replace(R.id.container, detailUserFragment.newInstant(userReponse, position));
+        manager.replace(R.id.container, detailUserFragment.newInstant(position));
         manager.addToBackStack(Constant.TAG_LIST_USER_FREGMENT);
         manager.commitAllowingStateLoss();
     }
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
+        switch (v.getId()) {
             case R.id.verticalButton:
                 layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
                 mRecyclerView.setLayoutManager(layoutManager);
@@ -125,6 +165,45 @@ public class ListUserFragment extends Fragment implements OnItemRecyclerViewClic
                 gridLayoutManager = new GridLayoutManager(getActivity(), 2);
                 mRecyclerView.setLayoutManager(gridLayoutManager);
                 break;
+            case R.id.insertUserButton:
+                insertUserToDB();
+                break;
         }
+    }
+
+    private void insertUserToDB() {
+        Completable.defer(new Callable<Completable>() {
+            @Override
+            public Completable call() throws Exception {
+                return Completable.fromAction(new Action() {
+                    @Override
+                    public void run() throws Exception {
+                        String name = mEdtName.getText().toString();
+                        int id = Integer.parseInt(mEdtId.getText().toString());
+                        User user = new User(name, id);
+                        mDatabase.getUserDAO().insertUser(user);
+                        Toast.makeText(getActivity(), "success", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new CompletableObserver() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        mCompositeDisposable.add(d);
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Toast.makeText(getActivity(), "insert success", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+                });
     }
 }

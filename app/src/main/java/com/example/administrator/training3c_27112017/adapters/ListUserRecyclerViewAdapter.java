@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import com.example.administrator.training3c_27112017.R;
-import com.example.administrator.training3c_27112017.User;
+import com.example.administrator.training3c_27112017.roomdb.entity.User;
 import com.example.administrator.training3c_27112017.interfaces.OnItemRecyclerViewClick;
 import com.example.administrator.training3c_27112017.interfaces.OnLoadMoreListener;
 import java.util.ArrayList;
