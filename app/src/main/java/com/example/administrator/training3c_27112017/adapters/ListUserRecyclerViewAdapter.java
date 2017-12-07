@@ -1,16 +1,17 @@
 package com.example.administrator.training3c_27112017.adapters;
 
 import android.content.Context;
+import android.databinding.DataBindingUtil;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import com.example.administrator.training3c_27112017.R;
-import com.example.administrator.training3c_27112017.roomdb.entity.User;
+import com.example.administrator.training3c_27112017.databinding.ItemUserBinding;
 import com.example.administrator.training3c_27112017.interfaces.OnItemRecyclerViewClick;
 import com.example.administrator.training3c_27112017.interfaces.OnLoadMoreListener;
+import com.example.administrator.training3c_27112017.roomdb.entity.UserEntity;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +21,7 @@ import java.util.List;
 
 public class ListUserRecyclerViewAdapter extends RecyclerView.Adapter {
 
-    private List<User> mUsers = new ArrayList<>();
+    public List<UserEntity> mUsers = new ArrayList<>();
     private Context mContext;
     private OnItemRecyclerViewClick mOnItemRecyclerViewClick;
     private OnLoadMoreListener mOnLoadMoreListener;
@@ -29,6 +30,7 @@ public class ListUserRecyclerViewAdapter extends RecyclerView.Adapter {
     private int lastVisibleItem, totalItemCount;
     private boolean isLoading;
     private int visibleThreshold = 5;
+    private ItemUserBinding itemUserBinding;
 
     public ListUserRecyclerViewAdapter(Context context) {
         mContext = context;
@@ -40,7 +42,8 @@ public class ListUserRecyclerViewAdapter extends RecyclerView.Adapter {
         //                super.onScrolled(recyclerView, dx, dy);
         //                totalItemCount = layoutManager.getItemCount();
         //                lastVisibleItem = layoutManager.findLastVisibleItemPosition();
-        //                if (!isLoading && totalItemCount <= (lastVisibleItem + visibleThreshold)) {
+        //                if (!isLoading && totalItemCount <= (lastVisibleItem +
+        // visibleThreshold)) {
         //                    if (mOnLoadMoreListener != null) {
         //                        mOnLoadMoreListener.onLoadMore();
         //                    }
@@ -50,7 +53,7 @@ public class ListUserRecyclerViewAdapter extends RecyclerView.Adapter {
         //        });
     }
 
-    public void updateData(List<User> users) {
+    public void updateData(List<UserEntity> users) {
         if (users == null) {
             return;
         }
@@ -84,9 +87,9 @@ public class ListUserRecyclerViewAdapter extends RecyclerView.Adapter {
         //            return new LoadingViewHolder(v);
         //        }
         //        return  null;
-        View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_user, parent, false);
-        return new RecyclerViewHolder(v, mOnItemRecyclerViewClick);
+        itemUserBinding = DataBindingUtil.inflate(LayoutInflater.from(parent.getContext()),
+                R.layout.item_user, parent, false);
+        return new RecyclerViewHolder(itemUserBinding);
     }
 
     @Override
@@ -98,8 +101,9 @@ public class ListUserRecyclerViewAdapter extends RecyclerView.Adapter {
         //            LoadingViewHolder loadingViewHolder = (LoadingViewHolder) holder;
         //            loadingViewHolder.mProgressBar.setIndeterminate(true);
         //        }
+
         RecyclerViewHolder recyclerViewHolder = (RecyclerViewHolder) holder;
-        recyclerViewHolder.binder(position);
+        recyclerViewHolder.binder(mUsers.get(position));
     }
 
     @Override
@@ -114,26 +118,16 @@ public class ListUserRecyclerViewAdapter extends RecyclerView.Adapter {
 
     public class RecyclerViewHolder extends RecyclerView.ViewHolder {
 
-        private TextView mTxtName;
-        private OnItemRecyclerViewClick mOnItemRecyclerViewClick;
-        private int position = 0;
+        private ItemUserBinding mItemUserBinding;
 
-        public RecyclerViewHolder(View itemView,
-                final OnItemRecyclerViewClick onItemRecyclerViewClick) {
-            super(itemView);
-            mTxtName = itemView.findViewById(R.id.nameTextView);
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mOnItemRecyclerViewClick = onItemRecyclerViewClick;
-                    mOnItemRecyclerViewClick.onItemClicked(position);
-                }
-            });
+        public RecyclerViewHolder(ItemUserBinding itemView) {
+            super(itemView.getRoot());
+            mItemUserBinding = itemView;
         }
 
-        public void binder(int position) {
-            mTxtName.setText(mUsers.get(position).getLogin());
-            this.position = position;
+        public void binder(UserEntity userEntity) {
+            mItemUserBinding.setUserItem(new UserItem(mOnItemRecyclerViewClick, userEntity));
+            mItemUserBinding.executePendingBindings();
         }
     }
 
@@ -143,7 +137,7 @@ public class ListUserRecyclerViewAdapter extends RecyclerView.Adapter {
 
         public LoadingViewHolder(View itemView) {
             super(itemView);
-//            mProgressBar = itemView.findViewById(R.id.loadMoreProgressBar);
+            mProgressBar = itemView.findViewById(R.id.loadMoreProgressBar);
         }
     }
 }

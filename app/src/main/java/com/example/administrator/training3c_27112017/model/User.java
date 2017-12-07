@@ -1,4 +1,4 @@
-package com.example.administrator.training3c_27112017.roomdb.entity;
+package com.example.administrator.training3c_27112017.model;
 
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;

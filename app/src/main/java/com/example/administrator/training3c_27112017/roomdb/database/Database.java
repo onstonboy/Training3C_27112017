@@ -3,14 +3,15 @@ package com.example.administrator.training3c_27112017.roomdb.database;
 import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
-import com.example.administrator.training3c_27112017.roomdb.entity.User;
+import com.example.administrator.training3c_27112017.model.User;
 import com.example.administrator.training3c_27112017.roomdb.dao.UserDAO;
+import com.example.administrator.training3c_27112017.roomdb.entity.UserEntity;
 
 /**
  * Created by Administrator on 12/07/17.
  */
 
-@android.arch.persistence.room.Database(entities = { User.class}, version = 1)
+@android.arch.persistence.room.Database(entities = { UserEntity.class}, version = 1)
 public abstract class Database extends RoomDatabase {
 
     public static final String DB_NAME = "UserGetFromServerByRetrofit.DB";
