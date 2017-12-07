@@ -1,0 +1,12 @@
+package com.example.administrator.training3c_27112017;
+
+/**
+ * Created by Administrator on 12/07/17.
+ */
+
+public final class Constant {
+    public static final String EXTRA_LIST_USER = "EXTRA_LIST_USER";
+    public static final String EXTRA_NAME_USER = "EXTRA_NAME_USER";
+    public static final String EXTRA_ID_USER = "EXTRA_ID_USER";
+    public static final String EXTRA_POSITION_USER = "EXTRA_POSITION_USER";
+}
