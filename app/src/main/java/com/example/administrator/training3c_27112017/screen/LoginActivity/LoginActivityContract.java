@@ -22,7 +22,6 @@ interface LoginActivityContract {
      * Presenter.
      */
     interface Presenter extends BasePresenter {
-
         void doLoginFacebook();
     }
 }

@@ -17,5 +17,7 @@ interface ProfileContract {
      * Presenter.
      */
     interface Presenter extends BasePresenter {
+
+//        void onGetDataFromIntentSuccess();
     }
 }

@@ -2,18 +2,23 @@ package com.example.administrator.training3c_27112017.screen.LoginActivity;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+import com.example.administrator.training3c_27112017.Constant;
 import com.example.administrator.training3c_27112017.R;
+import com.example.administrator.training3c_27112017.UserFb;
+import com.example.administrator.training3c_27112017.screen.profile.ProfileActivity;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
+import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import java.util.Arrays;
@@ -31,15 +36,14 @@ final class LoginActivityPresenter implements LoginActivityContract.Presenter {
     private CallbackManager mCallbackManager;
     private Activity mActivity;
     private LoginManager mLoginManager;
+    private UserFb user;
 
-    private final LoginActivityContract.ViewModel mViewModel;
-
-    public LoginActivityPresenter(LoginActivityContract.ViewModel viewModel,
-            CallbackManager callbackManager, Activity activity, LoginManager loginManager) {
-        mViewModel = viewModel;
+    public LoginActivityPresenter(CallbackManager callbackManager, Activity activity,
+            LoginManager loginManager) {
         mActivity = activity;
         mCallbackManager = callbackManager;
         mLoginManager = loginManager;
+        Log.d("Chuong", "LoginActivityPresenter: ");
     }
 
     @Override
@@ -62,9 +66,13 @@ final class LoginActivityPresenter implements LoginActivityContract.Presenter {
                                     @Override
                                     public void onCompleted(JSONObject object,
                                             GraphResponse response) {
-                                        doPassDataUser(response);
+                                        Log.d("Chuong", "onCompleted: ");
+                                        String id = AccessToken.getCurrentAccessToken().getUserId();
+                                        doPassDataUser(response, id);
+                                        doGoToProfileActivity();
                                     }
                                 });
+                Log.d("Chuong", "onSuccess: ");
                 doPutBundleToServer(graphRequest);
             }
 
@@ -80,21 +88,30 @@ final class LoginActivityPresenter implements LoginActivityContract.Presenter {
         });
     }
 
+    private void doGoToProfileActivity() {
+        mActivity.startActivity(
+                new Intent(mActivity, ProfileActivity.class).putExtra(Constant.EXTRA_USERFB, user));
+    }
+
     private void doPutBundleToServer(GraphRequest graphRequest) {
+        Log.d("Chuong", "doPutBundleToServer: ");
         Bundle bundle = new Bundle();
         bundle.putString("fields", "first_name, last_name");
         graphRequest.setParameters(bundle);
         graphRequest.executeAsync();
     }
 
-    private void doPassDataUser(GraphResponse response) {
+    private void doPassDataUser(GraphResponse response, String id) {
         try {
-            Log.d(TAG, "firstname: "
-                    + response.getJSONObject().getString("first_name")
-                    + " "
-                    + response.getJSONObject().getString("last_name"));
+            String firstname = response.getJSONObject().getString("first_name");
+            String lastname = response.getJSONObject().getString("last_name");
+            String fullname = firstname + " " + lastname;
+            user = new UserFb();
+            user.setId(id);
+            user.setName(fullname);
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        Log.d("Chuong", "doPassDataUser: ");
     }
 }

@@ -10,7 +10,8 @@ public class LoginActivityViewModel implements LoginActivityContract.ViewModel{
 
     private LoginActivityContract.Presenter mPresenter;
 
-    public LoginActivityViewModel() {
+    public LoginActivityViewModel(LoginActivityContract.Presenter presenter) {
+        mPresenter = presenter;
     }
 
     @Override
