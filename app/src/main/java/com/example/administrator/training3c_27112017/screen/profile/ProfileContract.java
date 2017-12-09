@@ -1,28 +1,21 @@
-package com.example.administrator.training3c_27112017.screen.LoginActivity;
+package com.example.administrator.training3c_27112017.screen.profile;
 
-//import com.example.administrator.training3c_27112017.screen.BasePresenter;
-//import com.example.administrator.training3c_27112017.screen.BaseViewModel;
-
-import android.view.View;
 import com.example.administrator.training3c_27112017.screen.BasePresenter;
 import com.example.administrator.training3c_27112017.screen.BaseViewModel;
 
 /**
  * This specifies the contract between the view and the presenter.
  */
-interface LoginActivityContract {
+interface ProfileContract {
     /**
      * View.
-//     */
+     */
     interface ViewModel extends BaseViewModel<Presenter> {
-
     }
 
     /**
      * Presenter.
      */
     interface Presenter extends BasePresenter {
-
-        void doLoginFacebook();
     }
 }
